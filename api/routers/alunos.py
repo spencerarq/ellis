@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Union
-from schemas import Aluno
-from models import Aluno as ModelAluno
-from database import get_db
+from typing import List
+from ..schemas import Aluno, AlunoCreate
+from ..models import Aluno as ModelAluno
+from ..database import get_db
 
 alunos_router = APIRouter()
 
@@ -14,7 +14,7 @@ def read_alunos(db: Session = Depends(get_db)):
 
     """
     alunos = db.query(ModelAluno).all()
-    return [Aluno.from_orm(aluno) for aluno in alunos]
+    return [Aluno.model_validate(aluno) for aluno in alunos]
 
 @alunos_router.get("/alunos/{aluno_id}", response_model=Aluno)
 def read_aluno(aluno_id: int, db: Session = Depends(get_db)):
@@ -30,10 +30,10 @@ def read_aluno(aluno_id: int, db: Session = Depends(get_db)):
     db_aluno = db.query(ModelAluno).filter(ModelAluno.id == aluno_id).first()
     if db_aluno is None:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
-    return Aluno.from_orm(db_aluno)
+    return Aluno.model_validate(db_aluno)
 
 @alunos_router.post("/alunos", response_model=Aluno)
-def create_aluno(aluno: Aluno, db: Session = Depends(get_db)):
+def create_aluno(aluno: AlunoCreate, db: Session = Depends(get_db)):
     """
     Cria um novo aluno com os dados fornecidos.
 
@@ -43,14 +43,14 @@ def create_aluno(aluno: Aluno, db: Session = Depends(get_db)):
     Returns:
         Aluno: aluno criado.
     """ 
-    db_aluno = ModelAluno(**aluno.dict(exclude={"id"})) 
+    db_aluno = ModelAluno(**aluno.model_dump()) 
     db.add(db_aluno)
     db.commit()
     db.refresh(db_aluno)
-    return Aluno.from_orm(db_aluno)
+    return Aluno.model_validate(db_aluno)
 
 @alunos_router.put("/alunos/{aluno_id}", response_model=Aluno)
-def update_aluno(aluno_id: int, aluno: Aluno, db: Session = Depends(get_db)):
+def update_aluno(aluno_id: int, aluno: AlunoCreate, db: Session = Depends(get_db)):
     """
     Atualiza os dados de um aluno existente.
 
@@ -68,12 +68,12 @@ def update_aluno(aluno_id: int, aluno: Aluno, db: Session = Depends(get_db)):
     if db_aluno is None:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
-    for key, value in aluno.dict(exclude_unset=True).items():
+    for key, value in aluno.model_dump(exclude_unset=True).items():
         setattr(db_aluno, key, value)
 
     db.commit()
     db.refresh(db_aluno)
-    return Aluno.from_orm(db_aluno)
+    return Aluno.model_validate(db_aluno)
 
 @alunos_router.delete("/alunos/{aluno_id}", response_model=Aluno)
 def delete_aluno(aluno_id: int, db: Session = Depends(get_db)):
@@ -93,13 +93,13 @@ def delete_aluno(aluno_id: int, db: Session = Depends(get_db)):
     if db_aluno is None:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
-    aluno_deletado = Aluno.from_orm(db_aluno)
+    aluno_deletado = Aluno.model_validate(db_aluno)
 
     db.delete(db_aluno)
     db.commit()
     return aluno_deletado
 
-@alunos_router.get("/alunos/nome/{nome_aluno}", response_model=Union[Aluno, List[Aluno]]) 
+@alunos_router.get("/alunos/nome/{nome_aluno}", response_model=List[Aluno]) 
 def read_aluno_por_nome(nome_aluno: str, db: Session = Depends(get_db)):
     """
     Busca alunos pelo nome (parcial ou completo).
@@ -111,18 +111,14 @@ def read_aluno_por_nome(nome_aluno: str, db: Session = Depends(get_db)):
         HTTPException: 404 - Nenhum aluno encontrado com esse nome.
         
     Returns:
-        Union[Aluno, List[Aluno]]: Um único objeto `Aluno` se houver apenas uma correspondência, 
-        ou uma lista de `Aluno` se houver várias correspondências.
+        List[Aluno]: Uma lista de alunos que correspondem ao critério de busca.
     """
     db_alunos = db.query(ModelAluno).filter(ModelAluno.nome.ilike(f"%{nome_aluno}%")).all() # ilike para case-insensitive
 
     if not db_alunos:
         raise HTTPException(status_code=404, detail="Nenhum aluno encontrado com esse nome")
 
-    if len(db_alunos) == 1:  # Retorna um único Aluno se houver apenas uma correspondência
-        return Aluno.from_orm(db_alunos[0])
-
-    return [Aluno.from_orm(aluno) for aluno in db_alunos]
+    return [Aluno.model_validate(aluno) for aluno in db_alunos]
 
 @alunos_router.get("/alunos/email/{email_aluno}", response_model=Aluno)
 def read_aluno_por_email(email_aluno: str, db: Session = Depends(get_db)):
@@ -143,4 +139,4 @@ def read_aluno_por_email(email_aluno: str, db: Session = Depends(get_db)):
     if db_aluno is None:
         raise HTTPException(status_code=404, detail="Nenhum aluno encontrado com esse email")
     
-    return Aluno.from_orm(db_aluno)
+    return Aluno.model_validate(db_aluno)

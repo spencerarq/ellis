@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, Table
 from sqlalchemy.orm import relationship
-from database import Base
+from .database import Base
 
 class Matricula(Base):
     __tablename__ = "matriculas"
@@ -28,6 +28,6 @@ class Curso(Base):
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String, nullable=False)
     codigo = Column(String, nullable=False, unique=True) 
-    descricao = Column(Text)  
+    carga_horaria = Column(Integer, nullable=False)
 
     matriculas = relationship("Matricula", back_populates="curso")
