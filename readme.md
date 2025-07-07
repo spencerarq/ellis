@@ -12,7 +12,7 @@ Este projeto é uma API desenvolvida com FastAPI para gerenciar alunos, cursos e
 
 ### Instalação e Execução (Recomendado)
 
-A maneira mais simples e recomendada de executar o projeto é usando Docker Compose, que orquestra todos os contêineres (API, Frontend, Bancos de Dados).
+A maneira mais simples e recomendada de executar o projeto é usando Docker Compose, que orquestra todos os contêineres (API, Frontend, Bancos de Dados, Monitoramento).
 
 A partir da raiz do projeto, execute:
 
@@ -29,6 +29,7 @@ Após iniciar os contêineres, os seguintes serviços estarão disponíveis:
 - **API (Backend)**:
   - URL: `http://localhost:8000`
   - Docs Interativos (Swagger): `http://localhost:8000/docs`
+  - Métricas: `http://localhost:8000/metrics`
 
 - **Webtop (Ambiente de Teste Visual)**:
   - URL: `http://localhost:3000`
@@ -37,6 +38,12 @@ Após iniciar os contêineres, os seguintes serviços estarão disponíveis:
 - **Frontend (dentro do Webtop)**:
   - URL: `http://localhost:3001`
   - **Como usar**: Acesse o desktop do Webtop, abra o navegador Chromium que já vem instalado e navegue para `http://frontend`.
+
+- **Monitoramento**:
+  - **Prometheus**: `http://localhost:9090`
+  - **Grafana**: `http://localhost:3003/login`
+    - Usuário: `admin`
+    - Senha: `admin`
 
 ### Desenvolvimento Local da API (com Hot-Reload)
 
@@ -108,9 +115,38 @@ Para executar os testes E2E que simulam a interação do usuário com o frontend
 
 ---
 
+## Monitoramento e Observabilidade
+
+O projeto inclui um stack completo de monitoramento usando Prometheus e Grafana:
+
+### Métricas Coletadas
+
+- **HTTP Requests**: Total de requisições por endpoint e status
+- **Response Time**: Tempo de resposta das requisições
+- **Active Connections**: Conexões ativas no banco de dados
+- **Database Operations**: Operações de banco de dados por tipo
+- **Application Health**: Status geral da aplicação
+
+### Configuração do Grafana
+
+1. Acesse `http://localhost:3003/login`
+2. Faça login com `admin/admin`
+3. Adicione Prometheus como datasource: `http://prometheus:9090`
+4. Importe dashboards personalizados ou crie os seus próprios
+
+### Alertas
+
+Configure alertas no Grafana para monitorar:
+
+- Alta latência nas requisições
+- Erros 5xx frequentes
+- Uso excessivo de CPU/memória
+- Falhas de conexão com o banco de dados
+
+---
+
 ## Estrutura do Projeto
 
-```
 ellis/
 ├── api/                   # Contém toda a lógica do backend (FastAPI)
 │   ├── routers/           # Módulos de rotas (alunos, cursos, etc.)
@@ -125,5 +161,23 @@ ellis/
 ├── e2e-tests/             # Testes de ponta a ponta (Playwright)
 ├── docker-compose.yml     # Orquestra todos os serviços da aplicação
 ├── Dockerfile             # Define a imagem da API
+├── prometheus.yml         # Configuração do Prometheus
 └── readme.md              # Este arquivo
+
+## Troubleshooting
+
+### Problemas Comuns
+
+- **Porta já em uso**: Verifique se as portas 8000, 3000, 3001, 3003 e 9090 estão disponíveis
+- **Grafana não carrega**: Aguarde alguns segundos para o serviço inicializar completamente
+- **Métricas não aparecem**: Certifique-se de que a API está recebendo requisições
+
+### Logs dos Serviços
+
+Para visualizar logs específicos:
+
+```sh
+docker-compose logs -f [nome_do_serviço]
 ```
+
+Serviços disponíveis: `api`, `frontend`, `db`, `prometheus`, `grafana`, `webtop`

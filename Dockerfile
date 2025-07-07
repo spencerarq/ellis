@@ -34,4 +34,4 @@ COPY ./api /app
 EXPOSE 8000
 
 # O comando de inicialização. O FastAPI encontrará o objeto 'app' em 'main.py' no diretório de trabalho.
-CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]

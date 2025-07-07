@@ -1,11 +1,13 @@
+import newrelic.agent
+newrelic.agent.initialize()
+
 from fastapi import FastAPI
 from .database import engine, Base, get_db
 from fastapi.middleware.cors import CORSMiddleware
 from .routers.alunos import alunos_router
 from .routers.cursos import cursos_router
 from .routers.matriculas import matriculas_router
-
-
+from prometheus_fastapi_instrumentator import Instrumentator
 
 Base.metadata.create_all(bind=engine)
 
@@ -19,8 +21,12 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Adiciona o instrumentador do Prometheus para expor o endpoint /metrics
+Instrumentator().instrument(app).expose(app)
+
 origins = [
     # Acesso de um frontend rodando localmente (fora do Docker)
+    "http://localhost",
     # Para o caso de `npm start` que geralmente usa a porta 3000.
     "http://localhost:3000",
     # Endereço do frontend rodando no Webtop (React Dev Server)
@@ -29,6 +35,8 @@ origins = [
     "http://localhost:3002",
     # Endereço para um dev rodando Webtop (React Dev Server)
     "http://frontend",
+    # Endereço da API
+    "http://localhost:8080",
 ]
 
 app.add_middleware(

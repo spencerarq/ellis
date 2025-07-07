@@ -177,3 +177,4 @@ pyrightconfig.json
 
 report.xml
 node_modules
+.env
