@@ -1,0 +1,33 @@
+.app-header {
+  background-color: #2c3e50; /* Azul escuro */
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-header nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.app-header nav a {
+  color: #ecf0f1; /* Cinza claro */
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.app-header nav a:hover, .app-header nav a.active {
+  background-color: #3498db; /* Azul mais claro */
+  color: white;
+}
+
+.app-main {
+  padding: 2rem;
+}

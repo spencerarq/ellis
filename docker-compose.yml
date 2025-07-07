@@ -1,4 +1,38 @@
 services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    container_name: ellis_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ellis-db-data:/var/lib/postgresql/data
+    healthcheck:
+      # O comando pg_isready verifica se o servidor PostgreSQL está aceitando conexões.
+      test: ["CMD-SHELL", "pg_isready -U ellis_user -d ellis_db"]
+      interval: 10s # Verifica a cada 10 segundos.
+      timeout: 5s   # Espera no máximo 5 segundos pela resposta.
+      retries: 5    # Tenta 5 vezes antes de marcar como 'unhealthy'.
+    networks:
+      - ellis-net
+
+  db_test:
+    build:
+      context: .
+      dockerfile: Dockerfile.db.test
+    container_name: ellis_db_test
+    ports:
+      - "5433:5432" # Exposto em uma porta diferente para evitar conflitos
+    healthcheck:
+      # Healthcheck similar para o banco de dados de teste.
+      test: ["CMD-SHELL", "pg_isready -U ellis_test_user -d ellis_test_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ellis-net
+
   api:
     build:
       context: .
@@ -6,8 +40,47 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./api:/app/api 
+      - ./api:/app/api
     container_name: ellis_api
+    # Agora, a API não apenas espera o container 'db' iniciar,
+    # mas aguarda até que o healthcheck do 'db' passe (seja saudável).
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://ellis_user:ellis_pass@db:5432/ellis_db
+    healthcheck:
+      # Verifica se a documentação da API está acessível.
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - ellis-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://api:8000
+    ports:
+      # Mapeado para a porta 3002 para evitar conflito com o Webtop.
+      - "3002:80"
+    container_name: ellis_frontend
+    # O frontend agora aguarda a API estar totalmente saudável antes de iniciar.
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      # Verifica se o servidor Nginx está respondendo na raiz.
+      # O Nginx já vem com curl na imagem base, mas adicionamos para garantir.
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - ellis-net
 
   tests:
     build:
@@ -17,3 +90,52 @@ services:
       - ./api:/app/api
       - ./tests:/app/tests
     container_name: ellis_tests
+    # O serviço de testes também aguarda o banco de dados de teste
+    # estar totalmente pronto antes de iniciar.
+    depends_on:
+      db_test:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://ellis_test_user:ellis_test_pass@db_test:5432/ellis_test_db
+    networks:
+      - ellis-net
+
+  e2e-tests:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.e2e
+    container_name: ellis_e2e_tests
+    # Os testes E2E agora aguardam o frontend estar totalmente saudável.
+    depends_on:
+      frontend:
+        condition: service_healthy
+    environment:
+      - PLAYWRIGHT_BASE_URL=http://frontend
+    networks:
+      - ellis-net
+
+  webtop:
+    build:
+      context: .
+      dockerfile: Dockerfile.webtop
+    container_name: ellis_webtop
+    ports:
+      - "3000:3000" # Porta para acessar o desktop do Webtop.
+      - "3001:3001" # Porta onde o React App (interno) estará rodando.
+    depends_on:
+      - api
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - REACT_APP_API_URL=http://api:8000
+    shm_size: "1gb" # Recomendado pela documentação do Webtop para melhor performance do navegador
+    networks:
+      - ellis-net
+
+networks:
+  ellis-net:
+    driver: bridge
+
+volumes:
+  ellis-db-data:

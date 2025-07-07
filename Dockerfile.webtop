@@ -1,0 +1,13 @@
+# Usa a imagem base do Webtop com ambiente XFCE.
+# A tag `alpine-xfce` não existe para esta imagem. Revertendo para a tag
+# `ubuntu-xfce`, que é uma tag válida. Os alertas de vulnerabilidade podem
+# reaparecer, mas para uma ferramenta de desenvolvimento local, o risco é baixo.
+FROM lscr.io/linuxserver/webtop:ubuntu-xfce
+
+# A imagem base já contém um ambiente de desktop com um navegador.
+# Não é necessário instalar Node.js ou as dependências do frontend aqui.
+# O objetivo do Webtop neste projeto é fornecer um ambiente de visualização
+# para acessar os outros serviços (como o `frontend` e a `api`) pela rede do Docker.
+
+# O serviço `e2e-tests` é o responsável por instalar as dependências e rodar os testes.
+EXPOSE 3000

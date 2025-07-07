@@ -60,3 +60,32 @@ def test_update_curso_inexistente(client: TestClient):
     response = client.put("/cursos/XX999", json=update_data)
     assert response.status_code == 404
     assert response.json() == {"detail": "Curso não encontrado"}
+
+@pytest.mark.unit
+def test_delete_curso_existente(client: TestClient, populated_db_session):
+    # O curso com ID 2 não possui matrículas na fixture
+    response = client.delete("/cursos/2")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["nome"] == "Engenharia Elétrica"
+
+    # Verifica se o curso foi removido
+    get_response = client.get("/cursos/EE101")
+    assert get_response.status_code == 404
+
+@pytest.mark.unit
+def test_delete_curso_com_matriculas_associadas(client: TestClient, populated_db_session):
+    # O curso com ID 1 possui matrículas associadas
+    response = client.delete("/cursos/1")
+    assert response.status_code == 200
+
+    # Verifica se as matrículas associadas também foram removidas
+    response_matriculas = client.get("/matriculas/aluno/João")
+    assert response_matriculas.status_code == 200
+    assert response_matriculas.json()["cursos"] == []
+
+@pytest.mark.unit
+def test_delete_curso_inexistente(client: TestClient):
+    response = client.delete("/cursos/999")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Curso não encontrado"}

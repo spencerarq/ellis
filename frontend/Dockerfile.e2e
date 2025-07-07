@@ -1,0 +1,19 @@
+# Usa a imagem oficial do Playwright que já inclui navegadores e dependências.
+# A tag da imagem (v1.53.2-jammy) corresponde à versão do Playwright no seu package.json.
+FROM mcr.microsoft.com/playwright:v1.53.2-jammy
+
+# Define o diretório de trabalho dentro do container.
+WORKDIR /app
+
+# Copia os arquivos de gerenciamento de pacotes primeiro para aproveitar o cache de camadas do Docker.
+COPY package.json ./
+COPY package-lock.json ./
+
+# Instala todas as dependências do projeto, incluindo as de desenvolvimento como o Playwright.
+RUN npm install
+
+# Copia o restante do código-fonte da aplicação e os testes.
+COPY . .
+
+# Define o comando padrão para executar os testes Playwright quando o container iniciar.
+CMD ["npx", "playwright", "test"]

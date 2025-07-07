@@ -1,0 +1,13 @@
+# Usa a imagem oficial do PostgreSQL.
+FROM postgres:17-alpine
+
+# Define as variáveis de ambiente para o banco de dados de TESTE.
+# Usar um banco de dados separado para testes é uma boa prática para isolar os ambientes.
+ENV POSTGRES_USER=ellis_test_user
+ENV POSTGRES_PASSWORD=ellis_test_pass
+ENV POSTGRES_DB=ellis_test_db
+
+# Copia o mesmo script de inicialização para criar a estrutura de tabelas.
+# Os testes E2E irão popular este banco de dados com dados de teste a cada execução.
+COPY db_scripts/init.sql /docker-entrypoint-initdb.d/
+COPY db_scripts/seed.sql /docker-entrypoint-initdb.d/

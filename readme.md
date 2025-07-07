@@ -1,134 +1,129 @@
-# Imersão DevOps - Alura Google Cloud
+# Sistema de Gestão Escolar - Ellis
 
 Este projeto é uma API desenvolvida com FastAPI para gerenciar alunos, cursos e matrículas em uma instituição de ensino.
 
-## Pré-requisitos
+## Começando
+
+### Pré-requisitos
 
 - [Python 3.10 ou superior instalado](https://www.python.org/downloads/)
 - [Git](https://git-scm.com/downloads)
 - [Docker](https://www.docker.com/get-started/)
 
-## Passos para subir o projeto
+### Instalação e Execução (Recomendado)
 
-### Localmente
+A maneira mais simples e recomendada de executar o projeto é usando Docker Compose, que orquestra todos os contêineres (API, Frontend, Bancos de Dados).
 
-1. **Clone ou faça o download do repositório:**
-   [Clique aqui para realizar o download](https://github.com/guilhermeonrails/imersao-devops/archive/refs/heads/main.zip)
+A partir da raiz do projeto, execute:
 
-2. **Crie um ambiente virtual:**
+```sh
+docker-compose up --build -d
+```
 
-   ```sh
-   python3 -m venv ./venv
-   ```
+Este comando irá construir as imagens e iniciar todos os serviços em segundo plano.
 
-3. **Ative o ambiente virtual:**
-   - No Linux/Mac:
+#### Acessando os Serviços
 
-     ```sh
-     source venv/bin/activate
-     ```
+Após iniciar os contêineres, os seguintes serviços estarão disponíveis:
 
-   - No Windows, abra um terminal no modo administrador e execute o comando:
+- **API (Backend)**:
+  - URL: `http://localhost:8000`
+  - Docs Interativos (Swagger): `http://localhost:8000/docs`
 
-   ```sh
-   Set-ExecutionPolicy RemoteSigned
-   ```
+- **Webtop (Ambiente de Teste Visual)**:
+  - URL: `http://localhost:3000`
+  - Descrição: Um ambiente de desktop completo rodando no seu navegador. É a principal forma de interagir visualmente com o frontend em um ambiente isolado.
 
-     ```sh
-     venv\Scripts\activate
-     ```
+- **Frontend (dentro do Webtop)**:
+  - URL: `http://localhost:3001`
+  - **Como usar**: Acesse o desktop do Webtop, abra o navegador Chromium que já vem instalado e navegue para `http://frontend`.
 
-4. **Instale as dependências:**
+### Desenvolvimento Local da API (com Hot-Reload)
 
-   ```sh
-   pip install -r requirements.txt
-   ```
+Esta abordagem é ideal se você deseja modificar o código da API e ver as alterações instantaneamente (hot-reload), enquanto se conecta ao banco de dados que está rodando no Docker.
 
-5. **Execute a aplicação:**
+1. **Inicie o serviço do banco de dados:**
 
    ```sh
-   uvicorn api.app:app --reload
+   docker-compose up -d db
    ```
 
-6. **Acesse a aplicação:**
+2. **Prepare o ambiente Python (na raiz do projeto):**
+    - Crie e ative um ambiente virtual:
 
-   - **Frontend Simples:**
-   Abra o navegador e acesse a página principal para ver uma lista dos endpoints disponíveis:  
-   <http://127.0.0.1:8000/>
+        ```sh
+        python3 -m venv venv
+        source venv/bin/activate  # Linux/macOS
+        # venv\Scripts\activate    # Windows
+        ```
 
-   Aqui você pode testar todos os endpoints da API de forma interativa.
+    - Instale as dependências:
 
-### Com Docker Compose
+        ```sh
+        pip install -r requirements.txt
+        ```
 
-A maneira mais simples e recomendada de executar o projeto é usando Docker Compose, que orquestra os contêineres da aplicação e dos testes.
+3. **Configure a variável de ambiente do banco de dados:**
+    - **Linux/macOS**:
 
-1. **Construa e suba a aplicação:**
+        ```sh
+        export DATABASE_URL="postgresql+psycopg2://ellis_user:ellis_pass@localhost:5432/ellis_db"
+        ```
 
-   ```sh
-   docker-compose up --build
-   ```
+    - **Windows (PowerShell)**:
 
-   O comando acima irá construir a imagem Docker (se ainda não existir) e iniciar o contêiner da aplicação. A flag `--build` garante que a imagem seja reconstruída caso haja alterações no `Dockerfile` ou nos arquivos de dependência.
+        ```powershell
+        $env:DATABASE_URL="postgresql+psycopg2://ellis_user:ellis_pass@localhost:5432/ellis_db"
+        ```
 
-2. **Acesse a aplicação:**
-   A API estará disponível em <http://12.0.0.1:8000/>.
+4. **Execute a aplicação com Uvicorn:**
+
+    ```sh
+    uvicorn api.app:app --reload
+    ```
+
+   A API estará disponível em `http://localhost:8000`.
 
 ---
 
 ## Executando os Testes
 
-Para garantir a qualidade e a integridade do código, o projeto inclui uma suíte de testes unitários.
+Para garantir a qualidade e a integridade do código, o projeto inclui uma suíte de testes unitários e de integração.
 
-### Executando Localmente
+### Testes de Backend (Unitários e Integração)
 
-1. **Instale as dependências de teste:**
-
-   ```sh
-   pip install -r requirements.txt
-   ```
-
-   (As dependências de teste como `pytest` e `pytest-cov` já estão no arquivo).
-
-2. **Execute os testes:**
-   A partir do diretório raiz do projeto, execute o seguinte comando para rodar os testes e ver o relatório de cobertura:
-
-   ```sh
-   pytest --cov=api --cov-report term-missing
-   ```
-
-   Para gerar um relatório no formato JUnit XML (útil para integração com ferramentas de CI/CD), use:
-
-   ```sh
-   pytest --cov=api --cov-report term-missing --junitxml=report.xml
-   ```
-
-### Executando com Docker Compose
-
-É uma boa prática rodar os testes em um ambiente isolado para garantir consistência. O `docker-compose.yml` já define um serviço para isso.
-
-1. **Execute os testes no container:**
+Para executar os testes da API em um ambiente isolado que se conecta ao banco de dados de teste (`db_test`):
 
    ```sh
    docker-compose run --rm tests
    ```
 
-   Este comando irá construir a imagem de teste (se necessário), iniciar um contêiner, executar os testes com `pytest` e, em seguida, remover o contêiner (`--rm`). O relatório de cobertura será exibido no terminal.
+### Testes de Frontend (End-to-End com Playwright)
+
+Para executar os testes E2E que simulam a interação do usuário com o frontend:
+
+   ```sh
+   docker-compose run --rm e2e-tests
+   ```
 
 ---
 
 ## Estrutura do Projeto
 
-- `app.py`: Arquivo principal da aplicação FastAPI.
-- `models.py`: Modelos do banco de dados (SQLAlchemy).
-- `schemas.py`: Schemas de validação (Pydantic).
-- `database.py`: Configuração do banco de dados SQLite.
-- `routers/`: Diretório com os arquivos de rotas (alunos, cursos, matrículas).
-- `requirements.txt`: Lista de dependências do projeto.
-- `tests/`: Diretório com os arquivos de testes.
-
----
-
-- O banco de dados SQLite será criado automaticamente como `escola.db` na primeira execução.
-- Para reiniciar o banco, basta apagar o arquivo `escola.db` (isso apagará todos os dados).
-
----
+```
+ellis/
+├── api/                   # Contém toda a lógica do backend (FastAPI)
+│   ├── routers/           # Módulos de rotas (alunos, cursos, etc.)
+│   ├── app.py             # Ponto de entrada da aplicação FastAPI
+│   ├── database.py        # Configuração da conexão com o banco de dados
+│   ├── models.py          # Modelos de dados (SQLAlchemy ORM)
+│   └── schemas.py         # Schemas de validação de dados (Pydantic)
+├── frontend/              # Contém toda a lógica do frontend (React)
+│   ├── src/
+│   └── Dockerfile         # Define como construir a imagem de produção do frontend
+├── tests/                 # Testes unitários e de integração do backend (Pytest)
+├── e2e-tests/             # Testes de ponta a ponta (Playwright)
+├── docker-compose.yml     # Orquestra todos os serviços da aplicação
+├── Dockerfile             # Define a imagem da API
+└── readme.md              # Este arquivo
+```

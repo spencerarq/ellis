@@ -1,2 +1,31 @@
 venv
 __pycache__
+# Metadados do Git
+.git
+.gitignore
+
+# Dependências e ambientes virtuais
+# A pasta node_modules do frontend não precisa ser enviada para o build da API/DB.
+frontend/node_modules
+venv
+
+# Arquivos de cache e compilados do Python
+__pycache__/
+*.pyc
+
+# Banco de dados local de desenvolvimento
+*.db
+.env*
+
+# Arquivos de configuração de IDE
+.vscode/
+.idea/
+
+# Relatórios e saídas de teste
+test-results/
+playwright-report/
+html-report/
+
+# Documentação
+readme.md
+

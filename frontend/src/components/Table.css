@@ -1,0 +1,30 @@
+.generic-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.generic-table thead {
+  background-color: #f8f9fa;
+}
+
+.generic-table th,
+.generic-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.generic-table th {
+  font-weight: 600;
+  color: #495057;
+}
+
+.generic-table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.generic-table .actions-cell {
+  text-align: center;
+}

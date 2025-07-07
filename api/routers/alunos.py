@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from ..schemas import Aluno, AlunoCreate
-from ..models import Aluno as ModelAluno
 from ..database import get_db
+from .. import models # Importa o módulo de modelos
 
 alunos_router = APIRouter()
 
@@ -13,13 +13,13 @@ def read_alunos(db: Session = Depends(get_db)):
     Retorna uma lista de todos os alunos cadastrados.
 
     """
-    alunos = db.query(ModelAluno).all()
+    alunos = db.query(models.Aluno).all()
     return [Aluno.model_validate(aluno) for aluno in alunos]
 
 @alunos_router.get("/alunos/{aluno_id}", response_model=Aluno)
 def read_aluno(aluno_id: int, db: Session = Depends(get_db)):
     """
-    Retorna os detalhes de um aluno específico com base no ID fornecido.
+    Retorna os detalhes de um aluno específico com base no ID.
 
     Args:
         aluno_id: O ID do aluno.
@@ -27,7 +27,7 @@ def read_aluno(aluno_id: int, db: Session = Depends(get_db)):
     Raises:
         HTTPException: Se o aluno não for encontrado.
     """
-    db_aluno = db.query(ModelAluno).filter(ModelAluno.id == aluno_id).first()
+    db_aluno = db.query(models.Aluno).filter(models.Aluno.id == aluno_id).first()
     if db_aluno is None:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
     return Aluno.model_validate(db_aluno)
@@ -43,7 +43,7 @@ def create_aluno(aluno: AlunoCreate, db: Session = Depends(get_db)):
     Returns:
         Aluno: aluno criado.
     """ 
-    db_aluno = ModelAluno(**aluno.model_dump()) 
+    db_aluno = models.Aluno(**aluno.model_dump()) 
     db.add(db_aluno)
     db.commit()
     db.refresh(db_aluno)
@@ -64,7 +64,7 @@ def update_aluno(aluno_id: int, aluno: AlunoCreate, db: Session = Depends(get_db
     Returns:
         Aluno: O aluno atualizado.
     """
-    db_aluno = db.query(ModelAluno).filter(ModelAluno.id == aluno_id).first()
+    db_aluno = db.query(models.Aluno).filter(models.Aluno.id == aluno_id).first()
     if db_aluno is None:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
@@ -89,9 +89,13 @@ def delete_aluno(aluno_id: int, db: Session = Depends(get_db)):
     Returns:
         Aluno: O aluno excluído.
     """
-    db_aluno = db.query(ModelAluno).filter(ModelAluno.id == aluno_id).first()
+    db_aluno = db.query(models.Aluno).filter(models.Aluno.id == aluno_id).first()
     if db_aluno is None:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    # Antes de apagar o aluno, apaga todas as matrículas associadas a ele
+    # para evitar erros de violação de chave estrangeira.
+    db.query(models.Matricula).filter(models.Matricula.aluno_id == aluno_id).delete(synchronize_session=False)
 
     aluno_deletado = Aluno.model_validate(db_aluno)
 
@@ -113,7 +117,7 @@ def read_aluno_por_nome(nome_aluno: str, db: Session = Depends(get_db)):
     Returns:
         List[Aluno]: Uma lista de alunos que correspondem ao critério de busca.
     """
-    db_alunos = db.query(ModelAluno).filter(ModelAluno.nome.ilike(f"%{nome_aluno}%")).all() # ilike para case-insensitive
+    db_alunos = db.query(models.Aluno).filter(models.Aluno.nome.ilike(f"%{nome_aluno}%")).all() # ilike para case-insensitive
 
     if not db_alunos:
         raise HTTPException(status_code=404, detail="Nenhum aluno encontrado com esse nome")
@@ -134,7 +138,7 @@ def read_aluno_por_email(email_aluno: str, db: Session = Depends(get_db)):
     Returns:
         Aluno: O aluno encontrado.
     """
-    db_aluno = db.query(ModelAluno).filter(ModelAluno.email == email_aluno).first()
+    db_aluno = db.query(models.Aluno).filter(models.Aluno.email == email_aluno).first()
 
     if db_aluno is None:
         raise HTTPException(status_code=404, detail="Nenhum aluno encontrado com esse email")
