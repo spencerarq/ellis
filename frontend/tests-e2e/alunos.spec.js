@@ -1,28 +1,80 @@
-import { test, expect } from '@playwright/test';
+const { test, expect } = require('@playwright/test');
 
-test('deve permitir a criação de um novo curso', async ({ page }) => {
-  // 1. Navegar para a página de cursos
-  // Usar um caminho relativo é melhor, pois aproveita a `baseURL` da sua configuração do Playwright.
-  await page.goto('/cursos');
+test.describe('Gerenciamento de Alunos', () => {
+  let createdStudents = [];
 
-  // 2. Verificar se a página correta foi carregada antes de prosseguir
-  await expect(page.getByRole('heading', { name: 'Lista de Cursos' })).toBeVisible();
+  test.beforeEach(async ({ page }) => {
+    // Navega para a página de alunos e aguarda o carregamento da rede
+    await page.goto('/alunos');
+    await page.waitForLoadState('networkidle');
+    createdStudents = []; // Limpa a lista antes de cada teste
+  });
 
-  // 3. Abrir o formulário de novo curso
-  await page.getByTestId('add-curso-button').click();
+  test.afterEach(async ({ page }) => {
+    // Limpa apenas os alunos criados durante o teste para garantir o isolamento
+    await cleanupSpecificStudents(page, createdStudents);
+  });
 
-  // 4. Preencher o formulário com os dados do curso
-  // O .fill() já foca no campo, então o .click() antes é desnecessário.
-  await page.getByTestId('curso-form-nome').fill('Playwright Avançado');
-  await page.getByTestId('curso-form-codigo').fill('PW-02');
-  await page.getByTestId('curso-form-carga-horaria').fill('420');
+  test('deve permitir a criação de um novo aluno', async ({ page }) => {
+    // Verificar se a página carregou corretamente
+    await expect(page.getByRole('heading', { name: 'Lista de Alunos' })).toBeVisible();
 
-  // 5. Salvar o novo curso
-  await page.getByTestId('curso-form-save-button').click();
+    // Criar dados únicos para o novo aluno
+    const timestamp = Date.now();
+    const studentName = `Aluno Teste ${timestamp}`;
+    const studentEmail = `aluno.teste.${timestamp}@example.com`;
+    const studentPhone = '987654321';
 
-  // 6. VERIFICAR se o novo curso aparece na lista com os dados corretos
-  // Esta é a parte mais importante: um teste sem verificação não garante nada.
-  const row = page.locator('tr', { hasText: 'Playwright Avançado' });
-  await expect(row.getByRole('cell', { name: 'PW-02' })).toBeVisible();
-  await expect(row.getByRole('cell', { name: '420' })).toBeVisible();
+    // Abrir o formulário de adição
+    await page.getByTestId('add-aluno-button').click();
+
+    // Preencher o formulário
+    await page.getByTestId('aluno-form-nome').fill(studentName);
+    await page.getByTestId('aluno-form-email').fill(studentEmail);
+    await page.getByTestId('aluno-form-telefone').fill(studentPhone);
+
+    // Salvar o novo aluno
+    await page.getByTestId('aluno-form-save-button').click();
+    await page.waitForLoadState('networkidle');
+
+    // Registrar o aluno criado para limpeza posterior
+    createdStudents.push({ email: studentEmail, name: studentName });
+
+    // Localizar a linha esperada na tabela
+    const row = page.locator(`tr:has-text("${studentName}")`);
+
+    // Esperar explicitamente que a linha apareça no DOM. Esta é a correção principal.
+    await row.waitFor();
+
+    // Agora, fazer as asserções com segurança
+    await expect(row.getByRole('cell', { name: studentEmail })).toBeVisible();
+    await expect(row.getByRole('cell', { name: studentPhone })).toBeVisible();
+  });
+
+  /**
+   * Limpa os alunos específicos criados durante a execução do teste.
+   */
+  async function cleanupSpecificStudents(page, studentsToDelete) {
+    if (studentsToDelete.length === 0) {
+      return;
+    }
+
+    // Garante que esta na página correta para a limpeza, caso o teste tenha navegado para outro lugar.
+    if (!page.url().includes('/alunos')) {
+      await page.goto('/alunos');
+    }
+    await page.waitForLoadState('networkidle');
+
+    for (const student of studentsToDelete) {
+      try {
+        const studentRow = page.locator('tr', { hasText: student.name });
+        if (await studentRow.isVisible()) {
+          await studentRow.getByRole('button', { name: 'Apagar' }).click();
+          await page.waitForLoadState('networkidle'); // Garante que a exclusão foi processada.
+        }
+      } catch (error) {
+        console.log(`Não foi possível apagar o aluno de teste "${student.name}": ${error.message}`);
+      }
+    }
+  }
 });

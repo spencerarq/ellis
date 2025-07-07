@@ -62,7 +62,7 @@ const AlunoForm = ({ onSuccess, onCancel, itemToEdit }) => {
               name="nome"
               value={formData.nome}
               onChange={handleChange}
-              data-test-id="aluno-form-nome"
+              data-testid="aluno-form-nome"
               required
             />
           </div>
@@ -75,7 +75,7 @@ const AlunoForm = ({ onSuccess, onCancel, itemToEdit }) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              data-test-id="aluno-form-email"
+              data-testid="aluno-form-email"
               required
             />
           </div>
@@ -88,7 +88,7 @@ const AlunoForm = ({ onSuccess, onCancel, itemToEdit }) => {
               name="telefone"
               value={formData.telefone}
               onChange={handleChange}
-              data-test-id="aluno-form-telefone"
+              data-testid="aluno-form-telefone"
               required
             />
           </div>
@@ -99,11 +99,11 @@ const AlunoForm = ({ onSuccess, onCancel, itemToEdit }) => {
               onClick={onCancel}
               disabled={isSubmitting}
               className="btn-cancel"
-              data-test-id="aluno-form-cancel-button"
+              data-testid="aluno-form-cancel-button"
             >
               Cancelar
             </button>
-            <button type="submit" disabled={isSubmitting} className="btn-save" data-test-id="aluno-form-save-button">
+            <button type="submit" disabled={isSubmitting} className="btn-save" data-testid="aluno-form-save-button">
               {isSubmitting ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Salvar Aluno')}
             </button>
           </div>

@@ -69,7 +69,7 @@ const CursoForm = ({ onSuccess, onCancel, itemToEdit }) => {
               name="nome"
               value={formData.nome}
               onChange={handleChange}
-              data-test-id="curso-form-nome"
+              data-testid="curso-form-nome"
               required
             />
           </div>
@@ -82,7 +82,7 @@ const CursoForm = ({ onSuccess, onCancel, itemToEdit }) => {
               name="codigo"
               value={formData.codigo}
               onChange={handleChange}
-              data-test-id="curso-form-codigo"
+              data-testid="curso-form-codigo"
               // O código não deve ser editável, pois é o identificador na URL de update.
               disabled={isEditing}
               required
@@ -97,7 +97,7 @@ const CursoForm = ({ onSuccess, onCancel, itemToEdit }) => {
               name="carga_horaria"
               value={formData.carga_horaria}
               onChange={handleChange}
-              data-test-id="curso-form-carga-horaria"
+              data-testid="curso-form-carga-horaria"
               required
             />
           </div>
@@ -108,7 +108,7 @@ const CursoForm = ({ onSuccess, onCancel, itemToEdit }) => {
               onClick={onCancel}
               disabled={isSubmitting}
               className="btn-cancel"
-              data-test-id="curso-form-cancel-button"
+              data-testid="curso-form-cancel-button"
             >
               Cancelar
             </button>
@@ -116,7 +116,7 @@ const CursoForm = ({ onSuccess, onCancel, itemToEdit }) => {
               type="submit"
               disabled={isSubmitting}
               className="btn-save"
-              data-test-id="curso-form-save-button"
+              data-testid="curso-form-save-button"
             >
               {isSubmitting ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Salvar Curso')}
             </button>

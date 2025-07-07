@@ -20,14 +20,14 @@ const AlunosPage = () => {
         <button
           onClick={() => onEdit(aluno)}
           className="edit-button"
-          data-test-id={`edit-button-${aluno.id}`}
+          data-testid={`edit-button-${aluno.id}`}
         >
           Editar
         </button>
         <button
           onClick={() => onDelete(aluno)}
           className="delete-button"
-          data-test-id={`delete-button-${aluno.id}`}
+          data-testid={`delete-button-${aluno.id}`}
         >
           Apagar
         </button>

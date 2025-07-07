@@ -58,7 +58,7 @@ const ListPage = ({
         <button
           onClick={handleAddItem}
           className="add-button"
-          data-test-id={buttonTestId}
+          data-testid={buttonTestId}
         >
           {buttonText}
         </button>

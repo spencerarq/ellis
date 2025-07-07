@@ -31,14 +31,14 @@ const MatriculasPage = () => {
         <button
           onClick={() => onEdit(matricula)}
           className="edit-button"
-          data-test-id={`edit-button-${matricula.id}`}
+          data-testid={`edit-button-${matricula.id}`}
         >
           Editar
         </button>
         <button
           onClick={() => onDelete(matricula)}
           className="delete-button"
-          data-test-id={`delete-button-${matricula.id}`}
+          data-testid={`delete-button-${matricula.id}`}
         >Apagar</button>
       </div>
     );

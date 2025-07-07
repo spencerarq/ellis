@@ -23,14 +23,14 @@ const CursosPage = () => {
         <button
           onClick={() => onEdit(curso)}
           className="edit-button"
-          data-test-id={`edit-button-${curso.id}`}
+          data-testid={`edit-button-${curso.id}`}
         >
           Editar
         </button>
         <button
           onClick={() => onDelete(curso)}
           className="delete-button"
-          data-test-id={`delete-button-${curso.id}`}
+          data-testid={`delete-button-${curso.id}`}
         >
           Apagar
         </button>
